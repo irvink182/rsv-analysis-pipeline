@@ -61,7 +61,7 @@ phyloannot \
 
 if [[ "${MODE}" == "national" ]]; then
 
-    CONFIG_A="resources/phyloannot/RSV-A_annotation_config.tsv"
+    CONFIG_A="${OUTDIR}/RSV-A/phyloannot/annotation_config.tsv"
 
 else
 
@@ -107,7 +107,7 @@ phyloannot \
 
 if [[ "${MODE}" == "national" ]]; then
 
-    CONFIG_B="resources/phyloannot/RSV-B_annotation_config.tsv"
+    CONFIG_B="${OUTDIR}/RSV-B/phyloannot/annotation_config.tsv"
 
 else
 
