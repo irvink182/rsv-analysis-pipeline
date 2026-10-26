@@ -1,0 +1,82 @@
+name: rsv-analysis-pipeline
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+
+  #####################################################################
+  # Python
+  #####################################################################
+
+  - python=3.12
+  - pip
+
+  #####################################################################
+  # Scientific Python
+  #####################################################################
+
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - biopython
+  - openpyxl
+  - pyyaml
+  - tqdm
+  - scikit-learn
+  - networkx
+  - colorcet
+  - shapely
+  - adjustText
+  - geopandas
+
+  #####################################################################
+  # Bioinformatics
+  #####################################################################
+
+  - mafft
+  - nextclade
+  - iqtree
+  - fasttree
+  - snp-sites
+  - snp-dists
+  - seqkit
+
+  #####################################################################
+  # R / Phylogenetic visualization
+  #####################################################################
+
+  - r-base
+  - r-optparse
+  - r-dplyr
+  - r-readr
+  - r-ggplot2
+  - r-ape
+  - r-ggnewscale
+  - r-svglite
+  - bioconductor-ggtree
+  - bioconductor-ggtreeextra
+
+  #####################################################################
+  # Development
+  #####################################################################
+
+  - pytest
+
+  #####################################################################
+  # Python packages
+  #####################################################################
+
+  - pip:
+
+      # Metadata tools
+      - git+https://github.com/irvink182/GenomeTableTools.git@v1.2.3
+
+      # GenomeReport
+      - git+https://github.com/irvink182/GenomeReport.git
+
+      # Tree annotation
+      - git+https://github.com/irvink182/phyloannot.git@v1.0.2
