@@ -65,6 +65,65 @@ def read_table(path):
 
 
 ###############################################################################
+# Expand CDS coverage
+###############################################################################
+
+def expand_cds_coverage(df):
+    """
+    Expand the Nextclade 'cdsCoverage' field into
+    one column per CDS.
+
+    Example:
+        F:0.99,G:1.0,L:0.95
+
+    becomes:
+        coverage_F
+        coverage_G
+        coverage_L
+    """
+
+    if "cdsCoverage" not in df.columns:
+        return df
+
+    def parse_cds_coverage(value):
+
+        if pd.isna(value) or value == "":
+            return {}
+
+        coverage = {}
+
+        for item in str(value).split(","):
+
+            if ":" not in item:
+                continue
+
+            gene, fraction = item.split(":", 1)
+
+            try:
+                coverage[f"coverage_{gene}"] = (
+                    float(fraction) * 100
+                )
+            except ValueError:
+                coverage[f"coverage_{gene}"] = pd.NA
+
+        return coverage
+
+    coverage_df = pd.DataFrame(
+        df["cdsCoverage"]
+        .apply(parse_cds_coverage)
+        .tolist(),
+        index=df.index,
+    )
+
+    return pd.concat(
+        [
+            df,
+            coverage_df,
+        ],
+        axis=1,
+    )
+
+###############################################################################
 # Normalize table
 ###############################################################################
 
@@ -151,6 +210,14 @@ def normalize_table(df):
         insert_position,
         "nextclade_lineage",
         df["clade"],
+    )
+
+    ###########################################################################
+    # Expand CDS coverage
+    ###########################################################################
+
+    df = expand_cds_coverage(
+        df,
     )
 
     return df
