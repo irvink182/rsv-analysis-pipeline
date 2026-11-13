@@ -47,6 +47,12 @@ class MasterTableColumns:
     GISAID_COLLECTION_MONTH: str = "gisaid_collection_month"
     GISAID_EPIWEEK: str = "gisaid_epiweek"
 
+    # Epidemiological temporal metadata
+    EPIDEMIOLOGICAL_SEASON: str = "epidemiological_season"
+    SEASON_EPIWEEK: str = "season_epiweek"
+    SEASON_EPIWEEK_CUSTOM: str = "season_epiweek_custom"
+    SEASON_WEEK: str = "season_week"
+
     GISAID_REGION: str = "gisaid_region"
     GISAID_COUNTRY: str = "gisaid_country"
     GISAID_DIVISION: str = "gisaid_division"
@@ -97,6 +103,10 @@ DEFAULT_PHYLOGENY_COLUMNS = [
     MASTER.GISAID_COLLECTION_YEAR,
     MASTER.GISAID_COLLECTION_MONTH,
     MASTER.GISAID_EPIWEEK,
+    MASTER.EPIDEMIOLOGICAL_SEASON,
+    MASTER.SEASON_EPIWEEK,
+    MASTER.SEASON_EPIWEEK_CUSTOM,
+    MASTER.SEASON_WEEK,
 
     # Geographic metadata
     MASTER.GISAID_COUNTRY,
@@ -203,57 +213,312 @@ def enrich_metadata(
     """
     Derive metadata fields from the original
     GISAID metadata.
+
+    Temporal metadata includes:
+    - calendar year
+    - calendar month
+    - ISO epidemiological week
+    - epidemiological season (week 40 to week 39)
+    - compact season/epiweek label
+
+    Examples:
+        2024-W40 -> 2024-25 -> W40_S24-25
+        2025-W03 -> 2024-25 -> W03_S24-25
     """
 
     metadata = master_table.copy()
 
+    # --------------------------------------------------------------
     # Collection date
+    # --------------------------------------------------------------
+
+    collection_date_raw = (
+        metadata[MASTER.COLLECTION_DATE]
+        .astype("string")
+        .str.strip()
+    )
+
     collection_date = pd.to_datetime(
-
-        metadata["Collection date"],
-
+        collection_date_raw,
+        format="mixed",
         errors="coerce",
-
     )
 
-    metadata["gisaid_collection_year"] = (
-        collection_date.dt.year
+    # --------------------------------------------------------------
+    # Calendar year
+    # --------------------------------------------------------------
+
+    metadata[
+        MASTER.GISAID_COLLECTION_YEAR
+    ] = pd.to_numeric(
+        collection_date_raw.str.extract(
+            r"^(\d{4})",
+            expand=False,
+        ),
+        errors="coerce",
+    ).astype("Int64")
+    
+
+    # --------------------------------------------------------------
+    # Calendar month
+    # --------------------------------------------------------------
+
+    metadata[
+        MASTER.GISAID_COLLECTION_MONTH
+    ] = pd.to_numeric(
+        collection_date_raw.str.extract(
+            r"^\d{4}-(\d{2})",
+            expand=False,
+        ),
+        errors="coerce",
+    ).astype("Int64")
+
+    complete_date = collection_date_raw.str.match(
+        r"^\d{4}-\d{2}-\d{2}$",
+        na=False,
     )
 
-    metadata["gisaid_collection_month"] = (
-        collection_date.dt.month
+    collection_date_complete = collection_date.where(
+        complete_date
     )
 
-    metadata["gisaid_epiweek"] = (
-        collection_date.dt.isocalendar().week
+    # --------------------------------------------------------------
+    # ISO epidemiological calendar
+    #
+    # Use ISO year together with ISO week to correctly handle
+    # dates around the beginning/end of the calendar year.
+    # --------------------------------------------------------------
+
+    iso_calendar = (
+        collection_date_complete
+        .dt
+        .isocalendar()
     )
 
+    iso_year = (
+        iso_calendar["year"]
+    )
+
+    epiweek = (
+        iso_calendar["week"]
+    )
+
+    metadata[
+        MASTER.GISAID_EPIWEEK
+    ] = epiweek
+
+    # --------------------------------------------------------------
+    # Epidemiological season
+    #
+    # SiVIRA convention:
+    #
+    #   Week 40 of year Y
+    #       to
+    #   Week 39 of year Y+1
+    #
+    # Examples:
+    #
+    #   2024-W39 -> 2023-24
+    #   2024-W40 -> 2024-25
+    #   2025-W03 -> 2024-25
+    #   2025-W39 -> 2024-25
+    #   2025-W40 -> 2025-26
+    # --------------------------------------------------------------
+
+    season_start_year = (
+        iso_year.where(
+            epiweek >= 40,
+            iso_year - 1,
+        )
+    )
+
+    season_end_year = (
+        season_start_year + 1
+    )
+
+    # --------------------------------------------------------------
+    # Week within epidemiological season
+    #
+    # Season starts at ISO week 40.
+    #
+    # Examples for a 52-week ISO year:
+    #
+    #   W40 -> 1
+    #   W41 -> 2
+    #   ...
+    #   W52 -> 13
+    #   W01 -> 14
+    #   ...
+    #   W39 -> 52
+    #
+    # ISO years containing week 53 are handled explicitly.
+    # --------------------------------------------------------------
+
+    weeks_in_start_year = pd.to_datetime(
+        season_start_year
+        .astype("Int64")
+        .astype("string")
+        + "-12-28",
+        errors="coerce",
+    ).dt.isocalendar()["week"]
+
+    season_week = (
+        epiweek - 39
+    )
+
+    next_calendar_year = (
+        iso_year > season_start_year
+    )
+
+    season_week = season_week.where(
+        ~next_calendar_year,
+        (weeks_in_start_year - 39) + epiweek,
+    )
+
+    metadata[
+        MASTER.SEASON_WEEK
+    ] = (
+        season_week.astype("Int64")
+    )
+
+    metadata[
+        MASTER.EPIDEMIOLOGICAL_SEASON
+    ] = (
+        season_start_year
+        .astype("Int64")
+        .astype("string")
+        +
+        "-"
+        +
+        (
+            season_end_year % 100
+        )
+        .astype("Int64")
+        .astype("string")
+        .str.zfill(2)
+    )
+
+    # --------------------------------------------------------------
+    # Compact season / epiweek label
+    #
+    # Examples:
+    #
+    #   W40_S24-25
+    #   W52_S24-25
+    #   W01_S24-25
+    #   W03_S24-25
+    #   W39_S24-25
+    # --------------------------------------------------------------
+
+    metadata[
+        MASTER.SEASON_EPIWEEK
+    ] = (
+        "W"
+        +
+        epiweek
+        .astype("Int64")
+        .astype("string")
+        .str.zfill(2)
+        +
+        "_S"
+        +
+        (
+            season_start_year % 100
+        )
+        .astype("Int64")
+        .astype("string")
+        .str.zfill(2)
+        +
+        "-"
+        +
+        (
+            season_end_year % 100
+        )
+        .astype("Int64")
+        .astype("string")
+        .str.zfill(2)
+    )
+
+    # --------------------------------------------------------------
+    # Compact custom season / epiweek label
+    #
+    # The epidemiological year corresponds to the year in which
+    # the season ends.
+    #
+    # Examples:
+    #
+    #   2021-22 -> S22
+    #   2022-23 -> S23
+    #   2024-25 -> S25
+    #
+    # Combined labels:
+    #
+    #   W46_S22
+    #   W02_S22
+    #   W50_S25
+    #   W02_S25
+    # --------------------------------------------------------------
+
+    metadata[
+        MASTER.SEASON_EPIWEEK_CUSTOM
+    ] = (
+        "W"
+        +
+        epiweek
+        .astype("Int64")
+        .astype("string")
+        .str.zfill(2)
+        +
+        "_S"
+        +
+        (
+            season_end_year % 100
+        )
+        .astype("Int64")
+        .astype("string")
+        .str.zfill(2)
+    )
+
+    # --------------------------------------------------------------
     # Parse GISAID location
+    # --------------------------------------------------------------
+
     location = (
-        metadata["Location"]
+        metadata[
+            MASTER.LOCATION
+        ]
         .fillna("")
         .str.split(
             "/",
             expand=True,
         )
         .apply(
-            lambda x: x.str.strip()
+            lambda x:
+            x.str.strip()
         )
     )
 
-    metadata["gisaid_region"] = (
+    metadata[
+        MASTER.GISAID_REGION
+    ] = (
         location[0]
     )
 
-    metadata["gisaid_country"] = (
+    metadata[
+        MASTER.GISAID_COUNTRY
+    ] = (
         location[1]
     )
 
-    metadata["gisaid_division"] = (
+    metadata[
+        MASTER.GISAID_DIVISION
+    ] = (
         location[2]
     )
 
-    metadata["gisaid_subdivision"] = (
+    metadata[
+        MASTER.GISAID_SUBDIVISION
+    ] = (
         location[3]
     )
 

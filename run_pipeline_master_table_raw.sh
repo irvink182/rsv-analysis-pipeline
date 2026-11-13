@@ -6,16 +6,16 @@ set -euo pipefail
 # Directories
 ###############################################################################
 
-MASTER_TABLE="results/01_master_table/master_table.tsv"
+MASTER_TABLE_DIR="results/01_master_table"
 OUTDIR="results/99_raw_report"
 
 ###############################################################################
 # Validate input
 ###############################################################################
 
-if [[ ! -f "${MASTER_TABLE}" ]]; then
+if [[ ! -f "${MASTER_TABLE_DIR}/master_table.tsv" ]]; then
     echo "ERROR: Master table not found:"
-    echo "    ${MASTER_TABLE}"
+    echo "    ${MASTER_TABLE_DIR}/master_table.tsv"
     echo
     echo "Run Step 01 first:"
     echo "    bash workflow/01_metadata_integration/run.sh"
@@ -38,14 +38,14 @@ echo "Generating raw GenomeReport"
 echo "============================================================"
 echo
 echo "Input:"
-echo "    ${MASTER_TABLE}"
+echo "    ${MASTER_TABLE_DIR}/master_table.tsv"
 echo
 echo "Output:"
 echo "    ${OUTDIR}"
 echo
 
 genomereport \
-    "${MASTER_TABLE}" \
+    "${MASTER_TABLE_DIR}/master_table.tsv" \
     --output "${OUTDIR}"
 
 ###############################################################################
@@ -58,7 +58,7 @@ echo "Raw GenomeReport completed."
 echo "============================================================"
 echo
 echo "Input:"
-echo "    ${MASTER_TABLE}"
+echo "    ${MASTER_TABLE_DIR}/master_table.tsv"
 echo
 echo "Output:"
 echo "    ${OUTDIR}"

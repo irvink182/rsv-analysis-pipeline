@@ -22,7 +22,8 @@ if [[ $# -lt 3 ]]; then
     echo 
     echo "PLOT_PROFILE:"
     echo "    standard    Standard phylogenetic annotation: Community and Collection year variables"
-    echo "    detailed    Detailed phylogenetic annotation: 5-SNP clustering, Institution, Collection year and month"
+    echo "    detailed    Detailed phylogenetic annotation: 5-SNP clustering, Institution,"
+    echo "                epidemiological season and week within season."
     echo "                for small datasets (for example, one Community datset)."
     exit 1
 fi

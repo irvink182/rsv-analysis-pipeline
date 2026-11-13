@@ -68,6 +68,18 @@ genometabletools integrate \
     --preserve_duplicates_columns comments \
     --output "${OUTDIR}/master_table.tsv"
 
+###############################################################################
+# Add epidemiological temporal metadata
+###############################################################################
+
+echo
+echo "Adding epidemiological temporal metadata..."
+echo
+
+python scripts/metadata/add_epidemiological_time.py \
+    --input "${OUTDIR}/master_table.tsv" \
+    --output "${OUTDIR}/master_table.tsv"
+
 echo
 echo "Metadata integration completed."
 echo

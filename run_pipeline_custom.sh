@@ -12,9 +12,12 @@ if [[ $# -lt 1 ]]; then
     echo "Usage:"
     echo "    bash run_pipeline_custom.sh ANALYSIS_NAME --where \"EXPRESSION\" [--where \"EXPRESSION\"] ..."
     echo
-    echo "Example:"
-    echo "    bash run_pipeline_custom.sh valencia \\"
-    echo "        --where \"autonomous_community=Comunitat Valenciana\""
+    echo "Examples:"
+    echo "    bash run_pipeline_custom.sh valencia --where \"autonomous_community=Comunitat Valenciana"
+    echo "    bash run_pipeline_custom.sh valencia_2024-25 \\"
+    echo "        --where \"autonomous_community=Comunitat Valenciana \\"
+    echo "        --where \"epidemiological_season=2024-25\""
+
     exit 1
 fi
 

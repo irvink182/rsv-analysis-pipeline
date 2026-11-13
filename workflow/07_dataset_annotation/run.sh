@@ -29,8 +29,7 @@ fi
 # Directories
 ###############################################################################
 
-MASTER="results/01_master_table/master_table.tsv"
-
+INPUT_DIR="${ANALYSIS_DIR}/03_dataset_selection"
 CLUSTER_DIR="${ANALYSIS_DIR}/06_clustering"
 OUTDIR="${ANALYSIS_DIR}/07_dataset_annotation"
 
@@ -48,7 +47,7 @@ echo "============================================================"
 echo
 
 python scripts/clustering/cluster_metadata.py \
-    --master_table "${MASTER}" \
+    --master_table "${INPUT_DIR}/RSV-A/analysis_table.tsv" \
     --cluster_annotations \
         "${CLUSTER_DIR}/RSV-A/tables/cluster_annotations.tsv" \
     --prefix RSV-A \
@@ -94,7 +93,7 @@ echo "============================================================"
 echo
 
 python scripts/clustering/cluster_metadata.py \
-    --master_table "${MASTER}" \
+    --master_table "${INPUT_DIR}/RSV-B/analysis_table.tsv" \
     --cluster_annotations \
         "${CLUSTER_DIR}/RSV-B/tables/cluster_annotations.tsv" \
     --prefix RSV-B \

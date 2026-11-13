@@ -179,8 +179,8 @@ case "${PLOT_PROFILE}" in
         ANNOTATIONS=(
             --annotation "Cluster_5:discrete:5-SNP cluster"
             --annotation "institution:discrete:Institution"
-            --annotation "gisaid_collection_year:continuous:Collection year"
-            --annotation "gisaid_collection_month:continuous:Collection month"
+            --annotation "epidemiological_season:discrete:Epidemiological season"
+            --annotation "season_week:continuous:Week within season"
         )
         ;;
 

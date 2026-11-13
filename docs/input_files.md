@@ -45,6 +45,22 @@ The pipeline expects:
 
 The sequence and metadata records must correspond to the same GISAID dataset.
 
+### Laboratory metadata
+
+The `laboratory_metadata.tsv` file is a curated input resource and must be prepared before running the pipeline.
+
+Laboratory metadata can be updated from the current GISAID sequencing metadata using the `genometabletools registry update` workflow. New or unresolved laboratory records should be manually reviewed before the resulting table is used as pipeline input.
+
+The pipeline does not update or modify the laboratory registry during execution. It assumes that the file provided under:
+
+```text
+resources/metadata/laboratory_metadata.tsv
+```
+
+represents the curated laboratory metadata for the current dataset.
+
+See [`laboratory_metadata.md`](laboratory_metadata.md) for the recommended procedure to update and curate this file.
+
 ## GISAID data
 
 Sequence and associated metadata obtained from GISAID are not included in this repository.

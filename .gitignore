@@ -31,11 +31,11 @@ resources/metadata/**/*.tsv
 
 
 # -----------------------------------------------------------------------------
-# Laboratory registry
+# Internal development workflows
 # -----------------------------------------------------------------------------
 
-resources/registry/*.tsv
-resources/registry/**/*.tsv
+run_laboratory_metadata.sh
+mutation_analysis/
 
 
 # -----------------------------------------------------------------------------

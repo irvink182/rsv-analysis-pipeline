@@ -43,7 +43,7 @@ The file is maintained as a curated resource and is not generated automatically 
 
 ## Processing
 
-The step is divided into two stages.
+The step is divided into three stages.
 
 First, the corresponding RSV-A and RSV-B GISAID metadata tables are concatenated:
 
@@ -69,12 +69,40 @@ The three resulting tables are then integrated with the curated laboratory metad
 sequencing_metadata.tsv ────┐
 patient_metadata.tsv ───────┤
 date_location_metadata.tsv ─┼── master_table.tsv
-laboratory_metadata.tsv ────┘
+laboratory_metadata.tsv ────┘         │
+                                      ▼
+                          Epidemiological temporal
+                          metadata enrichment
+                                      │
+                                      ▼
+                              master_table.tsv
 ```
 
 Metadata integration is performed using `Accession ID` as the common key.
 
 The `comments` column is preserved when duplicate columns are encountered during integration.
+
+### Epidemiological temporal metadata
+
+After metadata integration, epidemiological temporal variables are derived from `Collection date` and added to `master_table.tsv`.
+
+The following variables are generated:
+
+```text
+gisaid_collection_year
+gisaid_collection_month
+gisaid_epiweek
+epidemiological_season
+season_epiweek
+season_epiweek_custom
+season_week
+```
+
+Epidemiological seasons follow the SiVIRA convention, from ISO week 40 of year Y to ISO week 39 of year Y+1.
+
+Only complete collection dates (`YYYY-MM-DD`) are used to calculate epidemiological weeks and seasons. Year and month can still be extracted from partial collection dates when available.
+
+Adding these variables at this stage makes epidemiological time available before quality control and dataset selection, allowing custom analyses to be defined by epidemiological season or week.
 
 ## Output
 
@@ -89,7 +117,7 @@ results/01_master_table/
 | `patient_metadata.tsv` | Combined RSV-A and RSV-B patient metadata |
 | `sequencing_metadata.tsv` | Combined RSV-A and RSV-B sequencing metadata |
 | `date_location_metadata.tsv` | Combined RSV-A and RSV-B date and location metadata |
-| `master_table.tsv` | Integrated master metadata table used by downstream analyses |
+| `master_table.tsv` | Integrated master metadata table enriched with epidemiological temporal variables and used by downstream analyses |
 
 The main output of this step is:
 

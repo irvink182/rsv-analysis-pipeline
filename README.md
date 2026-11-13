@@ -64,7 +64,7 @@ Phylogenetic reconstruction is optional and is not executed automatically by the
 - Generation of metadata for downstream phylogenetic analyses.
 - Phylogenetic reconstruction using FastTree or IQ-TREE.
 - Phylogenetic visualization and metadata annotation.
-- Interactive genomic surveillance reports using GenomeReport.
+- Interactive genomic surveillance reports, including genomic connectivity analyses, using GenomeReport.
 - National surveillance and user-defined custom analyses.
 - Raw master-table reporting for metadata inspection and quality control.
 
@@ -115,15 +115,17 @@ See `docs/input_files.md` for the complete input requirements and expected direc
 
 ### Laboratory metadata
 
-The `laboratory_metadata.tsv` file is generated from the sequencing metadata using a curated laboratory registry maintained under:
+The `laboratory_metadata.tsv` file contains curated laboratory information associated with the GISAID records included in the analysis.
+
+This file must be prepared and curated before running the pipeline and placed under:
 
 ```text
-resources/registry/
+resources/metadata/laboratory_metadata.tsv
 ```
 
-The registry is cumulative and is updated when new datasets are incorporated. Most laboratory assignments are generated automatically, while a small number of unresolved records may require manual curation.
+Laboratory metadata can be updated from GISAID sequencing metadata using the `genometabletools registry update` workflow. New or unresolved records should be manually reviewed before the resulting table is used as pipeline input.
 
-The complete procedure for updating the laboratory registry and generating `resources/metadata/laboratory_metadata.tsv` is described in [`resources/registry/README.md`].
+See [`docs/laboratory_metadata.md`](docs/laboratory_metadata.md) for the recommended procedure to update and curate this file.
 
 ## Pipeline execution
 
@@ -448,7 +450,7 @@ GenomeTableTools is used for tabular metadata processing, integration, annotatio
 
 ### GenomeReport
 
-GenomeReport generates interactive HTML reports summarizing epidemiological and genomic characteristics of the analysed dataset.
+GenomeReport generates interactive HTML reports summarizing the epidemiological and genomic characteristics of the analysed dataset, including genomic cluster composition, temporal patterns, and genomic connectivity across epidemiological groups.
 
 ### phyloannot
 
